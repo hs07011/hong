@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>주변 관광지 및 맛집 소개 HJM 서비스</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      background: #f4f4f4;
+      color: #222;
+    }
+    .header {
+      background: #217093;
+      color: #fff;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+      padding: 18px 18px 18px 18px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 24px;
+      justify-content: space-between;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 5.6rem;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 0;
+      flex: unset;
+    }
+    #destination {
+      border: none;
+      outline: none;
+      font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+      padding: clamp(8px, 1.5vw, 12px) clamp(10px, 2vw, 20px);
+      width: 100%;
+      background: transparent;
+      flex-grow: 1;
+      transition: padding 0.2s;
+    }
+    #searchBtn {
+      background: #217093;
+      color: #fff;
+      border: 2px solid #217093;
+      font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+      font-weight: bold;
+      padding: 12px 24px;
+      border-radius: 4px;
+      margin-left: 10px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      white-space: nowrap;
+    }
+    #searchBtn:hover {
+      background: #fff !important;
+      color: #217093 !important;
+      border: 2px solid #217093 !important;
+    }
+    .main {
+      display: flex;
+      justify-content: space-between;
+      padding: 32px 32px 0 32px;
+      gap: 32px;
+    }
+    .map-container {
+      flex: 1 1 0;
+      min-width: 280px;
+      max-width: 50vw;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px #0002;
+      padding: 0;
+      margin-right: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+    #map {
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+    }
+    .side-tables {
+      flex: 1 1 0;
+      min-width: 280px;
+      max-width: 50vw;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .table-section {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px #0001;
+      padding: 0 0 12px 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .table-title {
+      font-size: 2.86rem;
+      font-weight: bold;
+      padding: 12px 0 12px 18px;
+      text-align: left;
+      letter-spacing: 1px;
+    }
+    .attraction-table {
+      background: #d6f5d6;
+    }
+    .restaurant-table {
+      background: #ffe5e0;
+    }
+    .table-container {
+      flex: 1;
+      overflow-y: auto;
+      max-height: calc(100% - 60px);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 2.2rem;
+      height: auto;
+    }
+    th, td {
+      padding: 28px 18px;
+      text-align: left;
+      height: 1%;
+    }
+    th {
+      background: #f0f0f0;
+      font-weight: bold;
+    }
+    tr {
+      border-bottom: 1px solid #ccc;
+      height: 1%;
+    }
+    tr:last-child {
+      border-bottom: none;
+    }
+    td.score {
+      text-align: right;
+      font-weight: bold;
+      font-size: 1em;
+    }
+    tr.clickable:hover {
+      background: #b2e6b2 !important;
+      cursor: pointer;
+    }
+    .restaurant-table tr.clickable:hover {
+      background: #ffd6cc !important;
+    }
+    /* 스크롤바 스타일링 */
+    .table-container::-webkit-scrollbar {
+      width: 8px;
+    }
+    .table-container::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    .table-container::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+    .table-container::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+    @media (min-width: 1001px) {
+      .main {
+        align-items: stretch;
+        min-height: 80vh;
+      }
+      .map-container, .side-tables {
+        height: 80vh;
+      }
+      #map {
+        min-height: 420px;
+      }
+      .table-section {
+        flex: 1 1 0;
+      }
+    }
+    @media (max-width: 1000px) {
+      .main { flex-direction: column; gap: 18px; padding: 18px 4vw 32px 4vw; }
+      .map-container, .side-tables { max-width: 100vw; width: 100%; height: auto; flex: none; }
+      #map { height: 40vh; min-height: 300px; }
+      .table-container { max-height: 300px; }
+      .side-tables { max-width: 100vw; }
+    }
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+        justify-content: flex-start !important;
+      }
+      .header h1 {
+        font-size: 2.2rem !important;
+        text-align: left;
+      }
+      .search-bar {
+        flex-direction: row !important;
+        gap: 8px !important;
+        align-items: center !important;
+        width: 100% !important;
+      }
+      .search-bar input {
+        width: 0 !important;
+        min-width: 0 !important;
+        flex: 1 1 0%;
+        font-size: 1.2rem !important;
+        height: 40px !important;
+        padding: 10px 12px !important;
+      }
+      .search-bar button {
+        font-size: 1.2rem !important;
+        height: 40px !important;
+        padding: 0 16px !important;
+        flex-shrink: 0;
+      }
+      .container {
+        padding: 8px !important;
+      }
+    }
+    @media (max-width: 600px) {
+      .main { padding: 4px 1vw 16px 1vw; }
+      .map-container, .side-tables { min-width: 0; }
+      #map { height: 200px; min-height: 200px; }
+      .table-title { font-size: 1.1rem; padding: 8px 0 8px 8px; }
+      table { font-size: 1.1rem; }
+      th, td { padding: 10px 6px; }
+      .side-tables { gap: 10px; }
+      .table-section img { width: 1.2rem !important; height: 1.2rem !important; }
+      .table-container { max-height: 250px; }
+      .table-container::-webkit-scrollbar { width: 4px; }
+      .header h1 {
+        font-size: 2.2rem !important;
+        text-align: left;
+      }
+      .search-bar {
+        flex-direction: row !important;
+        gap: 8px !important;
+        align-items: center !important;
+      }
+      .search-bar input {
+        width: 0 !important;
+        min-width: 0 !important;
+        flex: 1 1 0%;
+        font-size: 1.2rem !important;
+        height: 40px !important;
+        padding: 10px 12px !important;
+      }
+      .search-bar button {
+        font-size: 1.2rem !important;
+        height: 40px !important;
+        padding: 0 16px !important;
+        flex-shrink: 0;
+      }
+      .container {
+        padding: 8px !important;
+      }
+    }
+    .summary-btn {
+      font-size: clamp(1.4rem, 2.2vw, 1.8rem);
+      font-weight: bold;
+      padding: clamp(6px, 1.5vw, 10px) clamp(15px, 3vw, 27px);
+      border-radius: 9px;
+      border: 3px solid #217093;
+      background: #fff;
+      color: #217093;
+      cursor: pointer;
+      margin-right: 4px;
+      box-shadow: 2px 2px 4px #0001;
+      transition: background 0.2s, color 0.2s, font-size 0.2s, padding 0.2s;
+      white-space: nowrap;
+    }
+    .summary-btn:hover {
+      background: #217093;
+      color: #fff;
+    }
+    .summary-popup {
+      display: none;
+      position: absolute;
+      top: 5%;
+      left: 50%;
+      width: 48%;
+      min-width: 240px;
+      max-width: 98%;
+      min-height: 200px;
+      background: #fff;
+      border: 3px solid #222;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px #0003;
+      padding: 36px 40px 32px 40px;
+      font-size: 2.2rem;
+      color: #222;
+      z-index: 1000;
+      line-height: 1.7;
+      overflow-y: auto;
+      transform: translateX(-2%);
+    }
+    .summary-popup .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 18px;
+      cursor: pointer;
+      font-size: 1.5rem;
+      color: #888;
+      font-weight: bold;
+    }
+    .destination-intro-popup {
+      display: none;
+      position: absolute;
+      top: 5%;
+      left: 50%;
+      width: 48%;
+      min-width: 240px;
+      max-width: 98%;
+      min-height: 200px;
+      background: #fff;
+      border: 3px solid #217093;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px #0003;
+      padding: 36px 40px 32px 40px;
+      font-size: 2.2rem;
+      color: #222;
+      z-index: 2000;
+      line-height: 1.7;
+      overflow-y: auto;
+      transform: translateX(-2%);
+    }
+    .destination-intro-popup .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 18px;
+      cursor: pointer;
+      font-size: 1.5rem;
+      color: #888;
+      font-weight: bold;
+    }
+    .destination-intro-popup .title {
+      font-size: 2.8rem;
+      font-weight: bold;
+      color: #217093;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .destination-intro-popup .guide-text {
+      font-size: 2.2rem;
+      line-height: 1.8;
+      text-align: justify;
+    }
+    @media (max-width: 1000px) {
+      .summary-popup {
+        width: 96vw;
+        left: 2vw;
+        min-width: 0;
+        max-width: 98vw;
+        padding: 18px 8px 14px 8px;
+        font-size: 1.5rem;
+        transform: none;
+      }
+      .destination-intro-popup {
+        width: 96vw;
+        left: 2vw;
+        min-width: 0;
+        max-width: 98vw;
+        padding: 18px 8px 14px 8px;
+        font-size: 1.5rem;
+        transform: none;
+      }
+      .destination-intro-popup .title {
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+      }
+      .destination-intro-popup .guide-text {
+        font-size: 1.5rem;
+        line-height: 1.6;
+      }
+    }
+    .details-popup-wrapper {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 2100;
+      width: 63vw;
+      max-width: 790px;
+      height: auto;
+    }
+    .details-popup {
+      display: flex;
+      flex-direction: column;
+      background: white;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+      border-radius: 20px;
+      box-sizing: border-box;
+      max-height: 80vh;
+      font-size: clamp(1.4rem, 1.5vw, 1.7rem);
+      overflow: hidden;
+    }
+    .popup-outer-close-btn {
+      position: absolute;
+      top: -18px;
+      right: -18px;
+      width: 38px;
+      height: 38px;
+      background: #fff;
+      border: 2px solid #bbb;
+      border-radius: 50%;
+      font-size: 2.2rem;
+      color: #888;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      z-index: 2200;
+      transition: background 0.2s, color 0.2s;
+    }
+    .popup-outer-close-btn:hover {
+      background: #eee;
+      color: #333;
+    }
+    .details-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background: #f9f9f9;
+      border-bottom: 1px solid #eee;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      flex-shrink: 0;
+      min-width: 0;
+    }
+    .details-header h2 {
+      margin: 0;
+      font-size: clamp(1.8rem, 2vw, 2.2rem);
+      font-weight: bold;
+      flex-grow: 1;
+      margin-right: 15px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+    .details-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      position: relative;
+      left: -25px;
+    }
+    .details-header-actions .close-btn {
+      font-size: 2.8rem;
+      font-weight: 300;
+      color: #999;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 5px;
+      transition: color 0.2s;
+    }
+    .details-header-actions .close-btn:hover {
+      color: #333;
+    }
+    .details-content {
+      padding: 0 20px 20px 20px;
+      overflow: auto;
+    }
+    .details-popup .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      cursor: pointer;
+      font-size: 2rem;
+      color: #aaa;
+      font-weight: bold;
+      z-index: 1;
+    }
+    .details-popup-header {
+      font-size: 2.4rem;
+      font-weight: bold;
+      color: #217093;
+      margin-bottom: 16px;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
+    .place-name {
+      overflow-wrap: break-word;
+      word-break: keep-all;
+    }
+    .details-popup-content .detail-item {
+      margin-bottom: 12px;
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      align-items: center;
+      gap: 15px;
+    }
+    .details-popup-content .detail-item .label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: bold;
+      color: #555;
+    }
+    .details-popup-content .detail-item .value {
+      overflow-wrap: break-word;
+    }
+    .details-popup-content .detail-item .value a {
+      color: #1a0dab;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .details-popup-content .detail-item .value a:hover {
+      text-decoration: underline;
+    }
+    .details-popup .reviews-section {
+      margin-top: 20px;
+      border-top: 2px solid #eee;
+      padding-top: 15px;
+    }
+    .details-popup .reviews-section .review {
+      margin-bottom: 15px;
+      font-size: 1.4rem;
+      line-height: 1.6;
+    }
+    .details-popup .reviews-section .review-author {
+      font-weight: bold;
+      color: #217093;
+    }
+    @media (max-width: 600px) {
+      .details-popup {
+        font-size: 1.4rem;
+      }
+      .details-popup-header {
+        font-size: 2rem;
+      }
+    }
+    .website-popup {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 3000;
+      justify-content: center;
+      align-items: center;
+    }
+    .website-popup-container {
+      width: 95%;
+      height: 90%;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .website-popup-header {
+      padding: 10px 15px;
+      background: #f1f1f1;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
+    .website-popup-header .open-new-tab-btn {
+      font-size: 1.4rem;
+      padding: 5px 12px;
+      background: #e0e0e0;
+      border-radius: 5px;
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .website-popup-header .open-new-tab-btn:hover {
+      background: #d0d0d0;
+    }
+    .website-popup-header .close-btn {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #555;
+      cursor: pointer;
+      background: #ddd;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .website-popup iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .directions-popup {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 3000;
+      justify-content: center;
+      align-items: center;
+    }
+    .directions-popup-container {
+      width: 95%;
+      height: 90%;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .directions-popup-header {
+      padding: 10px 15px;
+      background: #f1f1f1;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
+    .directions-popup-header .open-new-tab-btn {
+      font-size: 1.4rem;
+      padding: 5px 12px;
+      background: #e0e0e0;
+      border-radius: 5px;
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .directions-popup-header .open-new-tab-btn:hover {
+      background: #d0d0d0;
+    }
+    .directions-popup-header .close-btn {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #555;
+      cursor: pointer;
+      background: #ddd;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .directions-popup iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #14516b;
+    }
+    .directions-btn {
+      font-size: 1.6rem;
+      font-weight: bold;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      background: #217093;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .directions-btn:hover {
+      background: #14516b;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Travel Here Service</h1>
+    <div class="search-bar">
+      <input id="destinationInput" type="text" 
+        placeholder="목적지 입력하시면 주변 관광지, 맛집 검색됩니다" 
+        style="color:#888; font-size:2.2rem; padding:18px 28px; height:56px; width:800px; border-radius:10px; border:1.5px solid #bbb; box-sizing:border-box;" />
+      <button id="searchBtn" style="font-size:2.2rem; height:56px; padding:0 48px; border-radius:10px; background:#217093; color:#fff; border:2px solid #217093; font-weight:bold; cursor:pointer; transition:background 0.2s, color 0.2s;">검색</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="map-container">
+      <div id="map"></div>
+      <div id="summaryBox" class="summary-popup" style="display:none;"></div>
+      <div id="destinationIntroBox" class="destination-intro-popup" style="display:none;"></div>
+    </div>
+    <div class="side-tables">
+      <div class="table-section attraction-table">
+        <div class="table-title">
+          <button id="attractionSummaryBtn" class="summary-btn">요약</button>
+          <img src="/assets/attraction.png" alt="관광지" style="vertical-align:middle;width:3.52rem;height:3.52rem;margin:0 10px 0 10px;">
+          관광지 10선
+        </div>
+        <div class="table-container">
+          <table id="attractionTable">
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="table-section restaurant-table">
+        <div class="table-title">
+          <button id="restaurantSummaryBtn" class="summary-btn">요약</button>
+          <img src="/assets/restaurant.png" alt="맛집" style="vertical-align:middle;width:3.52rem;height:3.52rem;margin:0 10px 0 10px;">
+          맛집 10선
+        </div>
+        <div class="table-container">
+          <table id="restaurantTable">
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="details-popup-wrapper" id="detailsPopupWrapper" style="display:none;">
+    <div id="placeDetailsBox" class="details-popup"></div>
+    <span class="popup-outer-close-btn" onclick="closeDetailsBox()">✕</span>
+  </div>
+  <div id="websitePopup" class="website-popup">
+    <div class="website-popup-container">
+      <div class="website-popup-header">
+        <a id="websitePopupLink" class="open-new-tab-btn" href="#" target="_blank" rel="noopener noreferrer">새 탭에서 열기</a>
+        <span class="close-btn" onclick="closeWebsitePopup()">✕</span>
+      </div>
+      <iframe id="websiteIframe" src=""></iframe>
+    </div>
+  </div>
+  <div id="directionsPopup" class="directions-popup">
+    <div class="directions-popup-container">
+      <div class="directions-popup-header">
+        <a id="directionsPopupLink" class="open-new-tab-btn" href="#" target="_blank" rel="noopener noreferrer">새 탭에서 열기</a>
+        <span class="close-btn" onclick="closeDirectionsPopup()">✕</span>
+      </div>
+      <iframe id="directionsIframe" src=""></iframe>
+    </div>
+  </div>
+  <script>
+    const PROXY = 'https://moazine.onrender.com';
+    let map, marker, destLatLng, attractions = [], restaurants = [];
+    let placeMarkers = [];
+    let speechVoices = [];
+    let GOOGLE_MAPS_API_KEY = ''; // API 키를 저장할 변수
+    let currentPositionLatLng = null; // 사용자의 실제 현재 위치 저장
+
+    function loadVoices() {
+      speechVoices = window.speechSynthesis.getVoices();
+    }
+    loadVoices();
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    // Google Maps JS API 동적 로드
+    async function loadGoogleMapAPI() {
+      const response = await fetch(`${PROXY}/map-key`);
+      const { apiKey } = await response.json();
+      GOOGLE_MAPS_API_KEY = apiKey; // API 키를 전역 변수에 저장
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap&libraries=places`;
+      script.async = true;
+      document.head.appendChild(script);
+    }
+
+    window.initMap = function() {
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 37.5665, lng: 126.9780 },
+        zoom: 14
+      });
+      // 첫 진입 시 현재 위치로 자동 검색
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          const lat = pos.coords.latitude, lng = pos.coords.longitude;
+          currentPositionLatLng = { lat, lng }; // 실제 현재 위치 저장
+          destLatLng = { lat, lng }; // 초기 검색 기준 위치 설정
+          map.setCenter({ lat, lng });
+          if (marker) marker.setMap(null);
+          marker = new google.maps.Marker({ position: { lat, lng }, map: map, title: '현재 위치', icon: { url: '/assets/current.png', scaledSize: new google.maps.Size(48, 48) } });
+          document.getElementById('destinationInput').value = '';
+          document.getElementById('destinationInput').placeholder = '현재 위치 검색 결과';
+          document.getElementById('destinationInput').style.color = '#888';
+          loadPlaces(true);
+        }, () => {
+          // 위치 권한 거부 시 서울 기본
+          loadPlaces(true);
+        });
+      } else {
+        loadPlaces(true);
+      }
+    };
+
+    document.getElementById('destinationInput').onfocus = function() {
+      this.style.color = '#222';
+      if (this.value === '') this.placeholder = '';
+    };
+    document.getElementById('destinationInput').onblur = function() {
+      if (this.value === '') {
+        this.placeholder = '현재 위치 검색 결과';
+        this.style.color = '#888';
+      }
+    };
+
+    document.getElementById('searchBtn').onclick = function() {
+      const dest = document.getElementById('destinationInput').value;
+      if (!dest) return alert('목적지를 입력하세요!');
+      fetch(`${PROXY}/geocode?query=${encodeURIComponent(dest)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.results && data.results.length > 0) {
+          const loc = data.results[0].geometry.location;
+          const placeName = data.results[0].formatted_address;
+          destLatLng = { lat: loc.lat, lng: loc.lng };
+          map.setCenter(destLatLng);
+          if (marker) marker.setMap(null);
+          marker = new google.maps.Marker({ position: destLatLng, map: map, title: '목적지' });
+          document.getElementById('destinationInput').style.color = '#222';
+          // 목적지 소개 표시 (Gemini API 호출)
+          showDestinationIntro(dest, placeName, destLatLng);
+          loadPlaces(false);
+        } else {
+          alert('목적지를 찾을 수 없습니다.');
+        }
+      })
+      .catch(error => {
+        console.error('지오코딩 에러:', error);
+        alert('검색 중 오류가 발생했습니다.');
+      });
+    };
+
+    // 검색창에서 엔터키 입력 시에도 검색 동작
+    document.getElementById('destinationInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        document.getElementById('searchBtn').click();
+      }
+    });
+
+    function clearPlaceMarkers() {
+      placeMarkers.forEach(m => m.setMap(null));
+      placeMarkers = [];
+    }
+
+    function loadPlaces(isCurrentLocation) {
+      clearPlaceMarkers();
+      let url = `${PROXY}/places?lat=${destLatLng.lat}&lng=${destLatLng.lng}&radius=5000`;
+      fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        attractions = data.attractions || [];
+        restaurants = data.restaurants || [];
+        renderTable('attractionTable', attractions, '관광지');
+        renderTable('restaurantTable', restaurants, '맛집');
+        // 관광지/맛집 마커 표시 (아이콘 적용)
+        attractions.forEach(place => {
+          if (place.geometry && place.geometry.location) {
+            const m = new google.maps.Marker({
+              position: place.geometry.location,
+              map: map,
+              title: place.name,
+              icon: {
+                url: '/assets/attraction.png',
+                scaledSize: new google.maps.Size(48, 48)
+              }
+            });
+            m.addListener('click', function() {
+              window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}`,'_blank');
+            });
+            placeMarkers.push(m);
+          }
+        });
+        restaurants.forEach(place => {
+          if (place.geometry && place.geometry.location) {
+            const m = new google.maps.Marker({
+              position: place.geometry.location,
+              map: map,
+              title: place.name,
+              icon: {
+                url: '/assets/restaurant.png',
+                scaledSize: new google.maps.Size(48, 48)
+              }
+            });
+            m.addListener('click', function() {
+              window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}`,'_blank');
+            });
+            placeMarkers.push(m);
+          }
+        });
+        // 검색창 표시
+        if (isCurrentLocation) {
+          document.getElementById('destinationInput').value = '';
+          document.getElementById('destinationInput').placeholder = '현재 위치 검색 결과';
+          document.getElementById('destinationInput').style.color = '#888';
+        }
+      });
+    }
+
+    function renderTable(tableId, list, type) {
+      const tbody = document.getElementById(tableId).querySelector('tbody');
+      let html = '';
+      
+      if (list.length === 0) {
+        // 데이터가 없을 때 5개의 빈 항목 표시
+        for (let i = 0; i < 5; i++) {
+          html += `<tr><td style='width:36px;text-align:center;color:#888;'>${i+1}.</td><td style='color:#888;'>현재 위치에서 추천할 곳이 없습니다</td><td class='score'></td></tr>`;
+        }
+      } else {
+        // 데이터가 있을 때 모든 항목 표시 (5개 이상이어도 모두 표시)
+        html = list.map((item, i) =>
+          `<tr class="clickable" onclick="showPlaceInfo('${item.place_id}', '${type}')">
+            <td style="width:36px;text-align:center;">${i+1}.</td>
+            <td>${item.name}</td>
+            <td class="score">${item.rating ? item.rating.toFixed(1) + '점' : '-'}</td>
+          </tr>`
+        ).join('');
+        
+        // 5개 미만일 때만 빈 항목으로 채움
+        if (list.length < 5) {
+          for (let i = list.length; i < 5; i++) {
+            html += `<tr><td style='width:36px;text-align:center;color:#888;'>${i+1}.</td><td style='color:#888;'>현재 위치에서 추천할 곳이 없습니다</td><td class='score'></td></tr>`;
+          }
+        }
+      }
+      tbody.innerHTML = html;
+    }
+
+    function showPlaceInfo(placeId, type) {
+      const wrapper = document.getElementById('detailsPopupWrapper');
+      const detailsBox = document.getElementById('placeDetailsBox');
+      detailsBox.innerHTML = `<div style=\"padding: 40px; text-align:center;\">상세 정보를 불러오는 중입니다...</div>`;
+      wrapper.style.display = 'block';
+      detailsBox.style.display = 'flex';
+
+      fetch(`${PROXY}/place-details?place_id=${placeId}`)
+        .then(res => res.json())
+        .then(place => {
+          if (place.error) throw new Error(place.error);
+
+          // Header with title and buttons
+          const headerHtml = `
+            <div class=\"details-header\">\n              <h2>${place.name}</h2>\n              <div class=\"details-header-actions\">\n                <button class=\"directions-btn\" onclick=\"openDirectionsPopup(${place.geometry.location.lat}, ${place.geometry.location.lng})\">길안내</button>\n              </div>\n            </div>\n          `;
+          
+          // Info items (address, rating, etc.)
+          const infoDivs = [];
+          if (place.formatted_address) {
+            infoDivs.push(`<div><strong>주소:</strong> ${place.formatted_address}</div>`);
+          }
+          if (place.rating) {
+            let ratingText = `${place.rating}점`;
+            if (place.user_ratings_total) {
+              ratingText += ` (${place.user_ratings_total}개)`;
+            }
+            infoDivs.push(`<div><strong>평점:</strong> ${ratingText}</div>`);
+          }
+          if (place.formatted_phone_number) {
+            infoDivs.push(`<div><strong>연락처:</strong> <a href=\"tel:${place.formatted_phone_number}\">${place.formatted_phone_number}</a></div>`);
+          }
+          const priceLevel = place.price_level;
+          if (priceLevel !== undefined && priceLevel !== null) {
+            const priceStr = '$'.repeat(priceLevel) + ' '.repeat(5 - priceLevel).replace(/ /g, '<span style=\"color:#eee;\">$</span>');
+            infoDivs.push(`<div><strong>가격대:</strong> ${priceStr}</div>`);
+          }
+          if (place.website) {
+            infoDivs.push(`<div><strong>웹사이트:</strong> <a href=\"#\" onclick=\"event.preventDefault(); openWebsitePopup('${place.website}');\">방문</a></div>`);
+            const guidanceText = '자세한 정보는 웹사이트 방문하여 확인해 주세요';
+            infoDivs.push(`<div><i class=\"fas fa-info-circle\"></i> <small>${guidanceText}</small></div>`);
+          }
+
+          // Reviews
+          let reviewsHtml = '<p>리뷰 정보가 없습니다.</p>';
+          if (place.reviews && place.reviews.length > 0) {
+            reviewsHtml = place.reviews.map(review => `
+              <div class="review">
+                <div class="review-author">
+                  <strong>${review.author_name}</strong> 
+                  <span class="review-time">(${review.relative_time_description})</span>
+                </div>
+                <p>${review.text}</p>
+              </div>
+            `).join('');
+          }
+
+          // Content with info and reviews
+          const contentHtml = `
+            <div class="details-content">
+              <div class="info-block" style="margin-bottom:18px;">${infoDivs.join('')}</div>
+              <h3><i class="fas fa-comment-alt"></i> 방문자 리뷰</h3>
+              <div class="reviews">
+                ${reviewsHtml}
+              </div>
+            </div>
+          `;
+
+          detailsBox.innerHTML = headerHtml + contentHtml;
+          wrapper.style.display = 'block';
+          detailsBox.style.display = 'flex';
+          
+          const contentScroller = detailsBox.querySelector('.details-content');
+          if (contentScroller) {
+            contentScroller.scrollTop = 0;
+            contentScroller.scrollLeft = 0;
+          }
+        })
+        .catch(err => {
+          console.error('Failed to get place details:', err);
+          detailsBox.innerHTML = `\n            <div class=\"details-header\">\n              <h2>오류</h2>\n              <div class=\"details-header-actions\">\n              </div>\n            </div>\n            <div class=\"details-content\" style=\"text-align:center; padding: 40px;\">\n              상세 정보를 불러오지 못했습니다.\n            </div>\n          `;
+          wrapper.style.display = 'block';
+          detailsBox.style.display = 'flex';
+        });
+    }
+
+    function closeDetailsBox() {
+      document.getElementById('detailsPopupWrapper').style.display = 'none';
+    }
+
+    function openDirectionsPopup(destLat, destLng) {
+      const originLatLng = currentPositionLatLng || destLatLng; // 실제 현재 위치를 우선 사용
+
+      if (!originLatLng) {
+        alert('현재 위치 또는 기준 위치를 알 수 없어 길안내를 시작할 수 없습니다. 위치 권한을 허용했는지 확인해주세요.');
+        return;
+      }
+
+      const origin = `${originLatLng.lat},${originLatLng.lng}`;
+      const destination = `${destLat},${destLng}`;
+      
+      // 1. Iframe용 Embed URL
+      const embedUrl = `https://www.google.com/maps/embed/v1/directions?key=${GOOGLE_MAPS_API_KEY}&origin=${origin}&destination=${destination}&mode=transit`;
+      document.getElementById('directionsIframe').src = embedUrl;
+
+      // 2. '새 탭에서 열기'용 공식 URL
+      const officialUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=transit`;
+      document.getElementById('directionsPopupLink').href = officialUrl;
+      
+      document.getElementById('directionsPopup').style.display = 'flex';
+    }
+
+    function closeDirectionsPopup() {
+      document.getElementById('directionsIframe').src = 'about:blank';
+      document.getElementById('directionsPopup').style.display = 'none';
+    }
+
+    function openWebsitePopup(url) {
+      // 일부 웹사이트는 http/https가 없으면 iframe에서 열리지 않으므로 추가
+      let fullUrl = url;
+      if (!/^https?:\/\//i.test(url)) {
+        fullUrl = 'https://' + url;
+      }
+      document.getElementById('websiteIframe').src = fullUrl;
+      document.getElementById('websitePopupLink').href = fullUrl; // '새 탭에서 열기' 버튼의 링크 설정
+      document.getElementById('websitePopup').style.display = 'flex';
+    }
+
+    function closeWebsitePopup() {
+      document.getElementById('websiteIframe').src = 'about:blank'; // iframe 내용 비우기
+      document.getElementById('websitePopup').style.display = 'none';
+    }
+
+    // 요약 정보 보기 버튼 이벤트
+    document.getElementById('attractionSummaryBtn').onclick = function() {
+      showSummary('관광지', attractions);
+    };
+    document.getElementById('restaurantSummaryBtn').onclick = function() {
+      showSummary('맛집', restaurants);
+    };
+
+    function showSummary(type, list) {
+      if (!list || list.length === 0) {
+        showSummaryBox('요약할 정보가 없습니다.');
+        return;
+      }
+      showSummaryBox('요약 정보를 불러오는 중...');
+      fetch('https://moazine.onrender.com/summarize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ places: list, type })
+      })
+      .then(res => res.json())
+      .then(data => {
+        showSummaryBox(data.summary || '요약 정보를 가져오지 못했습니다.');
+      })
+      .catch(() => showSummaryBox('요약 정보를 가져오지 못했습니다.'));
+    }
+
+    function getSpeechText(text) {
+      // 1. 줄 시작의 번호를 한국어 서수로 먼저 변환합니다. (멀티라인 `m` 플래그 사용)
+      let speech = text.replace(/^1\./gm, '첫번째')
+                       .replace(/^2\./gm, '두번째')
+                       .replace(/^3\./gm, '셋번째')
+                       .replace(/^4\./gm, '네번째')
+                       .replace(/^5\./gm, '다섯번째');
+
+      // 2. 괄호와 괄호 안의 내용, 그 외 기호를 정리합니다.
+      speech = speech
+        .replace(/\([^\)]*\)/g, '') // ( ... ) 전체 제거
+        .replace(/[\[\]\-·*=_~^|#@$%&+=→•▪︎🎯🌟🎒✈️👍✅✔💯❣️]/g, ' ') // 음성 출력에 불필요한 특수기호 및 이모지 제거
+        .replace(/:/g, '은')
+        .replace(/\//g, ' 또는 ')
+        .replace(/평점/g, '평점은');
+
+      // 3. 실수형 점수를 한국어로 변환합니다. (예: 4.5점 -> 4점5)
+      speech = speech.replace(/(\d+)\.(\d+)점/g, '$1점$2');
+      
+      // 4. 서수나 평점으로 처리되지 않은, 본문에 남은 '숫자.' 형식의 점을 제거합니다.
+      speech = speech.replace(/(\d)\./g, '$1');
+
+      // 5. 마지막으로 줄바꿈과 여러 공백을 하나의 공백으로 통일합니다.
+      speech = speech.replace(/\n/g, ' ').replace(/\s{2,}/g, ' ').trim();
+        
+      return speech;
+    }
+
+    function showSummaryBox(text) {
+      const box = document.getElementById('summaryBox');
+      box.innerHTML = `<span class='close-btn' onclick="closeSummaryBox()">✕</span>` + text;
+      box.style.display = 'block';
+      // 음성 출력 (여행 가이드 인트로, 옵션 조정)
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // 기존 음성 중지
+        const speechText = getSpeechText(text);
+        const utter = new SpeechSynthesisUtterance(speechText);
+        utter.lang = 'ko-KR';
+        utter.rate = 1; // 자연스러운 속도
+        utter.pitch = 1; // 자연스러운 높이
+        // 자연스러운 한국어 voice 선택
+        const koVoice = speechVoices.find(v => v.lang === 'ko-KR' && v.name.includes('Google'));
+        if (koVoice) utter.voice = koVoice;
+        window.speechSynthesis.speak(utter);
+      }
+    }
+
+    function closeSummaryBox() {
+      document.getElementById('summaryBox').style.display = 'none';
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    }
+
+    function showDestinationIntro(searchQuery, placeName, latLng) {
+      const box = document.getElementById('destinationIntroBox');
+      box.innerHTML = `
+        <span class='close-btn' onclick="closeDestinationIntro()">✕</span>
+        <div class="title">🎯 ${searchQuery} 여행 가이드</div>
+        <div class="guide-text">가이드 정보를 생성하는 중입니다... 잠시만 기다려주세요.</div>
+      `;
+      box.style.display = 'block';
+
+      // 서버에 Gemini 소개 생성 요청
+      fetch(`${PROXY}/generate-intro`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: searchQuery, address: placeName, lat: latLng.lat, lng: latLng.lng })
+      })
+      .then(res => res.json())
+      .then(data => {
+        // 응답이 왔을 때, 팝업이 여전히 열려있는지 확인
+        if (box.style.display !== 'none') {
+          const introText = data.intro.replace(/\n/g, '<br>'); // 줄바꿈을 <br>로
+          const guideTextElement = box.querySelector('.guide-text');
+          if (guideTextElement) {
+            guideTextElement.innerHTML = introText;
+          }
+
+          // 음성 출력
+          if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const speechText = getDestinationSpeechText(introText);
+            const utter = new SpeechSynthesisUtterance(speechText);
+            utter.lang = 'ko-KR';
+            utter.rate = 1.0;
+            utter.pitch = 1.0;
+            const koVoice = speechVoices.find(v => v.lang === 'ko-KR' && v.name.includes('Google'));
+            if (koVoice) utter.voice = koVoice;
+            window.speechSynthesis.speak(utter);
+          }
+        }
+      })
+      .catch(err => {
+        console.error('Failed to get destination intro:', err);
+        if (box.style.display !== 'none') {
+          const guideTextElement = box.querySelector('.guide-text');
+          if (guideTextElement) {
+            guideTextElement.innerHTML = '가이드 정보 생성에 실패했습니다. 다시 시도해 주세요.';
+          }
+        }
+      });
+    }
+
+    function getDestinationSpeechText(text) {
+      // HTML 태그 제거 및 음성용 텍스트 정리
+      let speech = text.replace(/<[^>]*>/g, '') // HTML 태그 제거
+                       .replace(/[\[\]\-·*=_~^|#@$%&+=→•▪︎🎯🌟🎒✈️👍✅✔💯❣️]/g, ' ') // 음성 출력에 불필요한 특수기호 및 이모지 제거
+                       .replace(/\n/g, ' ') // 줄바꿈을 공백으로
+                       .replace(/\s{2,}/g, ' ') // 여러 공백을 하나로
+                       .trim();
+      
+      return speech;
+    }
+
+    function closeDestinationIntro() {
+      document.getElementById('destinationIntroBox').style.display = 'none';
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    }
+
+    // 페이지 로드 시 Google Maps API 로드 시작
+    window.onload = function() {
+      loadGoogleMapAPI();
+      // 페이지 로드시 입력란 value를 빈 값으로 초기화하여 placeholder가 항상 보이게
+      document.getElementById('destinationInput').value = '';
+    };
+  </script>
+</body>
